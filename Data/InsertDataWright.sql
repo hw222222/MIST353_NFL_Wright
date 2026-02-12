@@ -1,0 +1,3 @@
+-- insert data
+-- instert all of the converencedivision data (8 rows)
+-- insert team data for AFC North (4 rows)
