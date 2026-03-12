@@ -1,40 +1,40 @@
-USE MIST353_NFL_RDB_Wright;
-GO
+-- -- Step 1: Create a login at the server level
 
--- 1. Insert Conference/Division
-IF NOT EXISTS (SELECT 1 FROM ConferenceDivision WHERE Conference = 'AFC' AND Division = 'North')
-BEGIN
-    INSERT INTO ConferenceDivision (Conference, Division)
-    VALUES 
-    ('AFC', 'North'), ('AFC', 'East'), ('AFC', 'South'), ('AFC', 'West'),
-    ('NFC', 'North'), ('NFC', 'East'), ('NFC', 'South'), ('NFC', 'West');
-END
+-- use master;
 
--- 2. Ensure Stadiums and Teams exist
-IF NOT EXISTS (SELECT 1 FROM Team WHERE TeamName = 'Pittsburgh Steelers')
-BEGIN
-    INSERT INTO Stadium (Location) VALUES ('Acrisure Stadium, Pittsburgh, PA');
-    DECLARE @StadiumID INT = SCOPE_IDENTITY();
+-- CREATE LOGIN NandaSurendra
 
-    INSERT INTO Team (TeamName, TeamCity, TeamColors, ConferenceDivisionID)
-    VALUES ('Pittsburgh Steelers', 'Pittsburgh', 'Black and Gold', 1);
-    DECLARE @TeamID INT = SCOPE_IDENTITY();
+-- WITH PASSWORD = 'MI$T353Instructor';
 
-    INSERT INTO TeamStadium (TeamID, StadiumID, StartDate)
-    VALUES (@TeamID, @StadiumID, '2001-08-18');
-END
 
--- 3. Final Verification
-SELECT 'Teams in DB' AS Status, TeamName, TeamCity FROM Team;
-SELECT 'Users in DB' AS Status, Firstname, Lastname, Email FROM AppUser;
 
--- 4. Re-run the Join to see the relationships
-SELECT 
-    t.TeamName, 
-    cd.Conference, 
-    cd.Division, 
-    s.Location AS HomeStadium
-FROM Team t
-JOIN ConferenceDivision cd ON t.ConferenceDivisionID = cd.ConferenceDivisionID
-LEFT JOIN TeamStadium ts ON t.TeamID = ts.TeamID
-LEFT JOIN Stadium s ON ts.StadiumID = s.StadiumID;
+-- -- Step 2: Switch to your target database
+
+-- --USE MIST353_NFL_RDB_Wright;
+
+
+
+-- -- Step 3: Create a database user mapped to the login
+
+-- CREATE USER NandaSurendra
+
+-- FOR LOGIN NandaSurendra;
+
+
+
+-- -- Step 4: Grant EXECUTE permission on all stored procedures and UDFs
+
+-- GRANT EXECUTE TO NandaSurendra;
+
+
+
+-- -- Read access to all tables
+
+-- GRANT SELECT TO NandaSurendra;
+
+use master;
+
+-- connectionstring Server=localhost;Database=MIST353_NFL_RDB_Wright;Trusted_Connection=True;
+SELECT name
+FROM sys.databases
+ORDER BY name;

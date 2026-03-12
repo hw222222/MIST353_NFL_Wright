@@ -1,2 +1,7 @@
--- 3 queries
--- 1 each from conference division and team tables and 1 join query
+go
+
+
+select TeamName, Conference, Division
+from Team T inner join ConferenceDivision CD
+    on T.ConferenceDivisionID = CD.ConferenceDivisionID
+order by TeamName;
