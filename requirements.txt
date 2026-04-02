@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pyodbc
+python-dotenv
+azure-identity
+streamlit
+requests
+pandas

@@ -21,6 +21,7 @@ if load_dotenv is not None:
     load_dotenv(dotenv_path=Path(__file__).resolve().parents[1] / ".env")
 
 SQL_COPT_SS_ACCESS_TOKEN = 1256
+_DEVICE_CODE_CREDENTIAL = None
 
 
 def _require_env(name):
@@ -85,12 +86,17 @@ def _connect_with_device_code(server, database):
             "Azure device-code authentication requires the 'azure-identity' package."
         )
 
+    global _DEVICE_CODE_CREDENTIAL
     tenant_id = os.getenv("AZURE_TENANT_ID")
-    if tenant_id:
-        credential = DeviceCodeCredential(tenant_id=tenant_id)
-    else:
-        credential = DeviceCodeCredential()
-    token = credential.get_token("https://database.windows.net/.default")
+    if _DEVICE_CODE_CREDENTIAL is None:
+        if tenant_id:
+            _DEVICE_CODE_CREDENTIAL = DeviceCodeCredential(tenant_id=tenant_id)
+        else:
+            _DEVICE_CODE_CREDENTIAL = DeviceCodeCredential()
+
+    token = _DEVICE_CODE_CREDENTIAL.get_token(
+        "https://database.windows.net/.default"
+    )
     token_bytes = token.token.encode("utf-16-le")
     token_struct = struct.pack("<I", len(token_bytes)) + token_bytes
     connection_string = _base_connection_string(server, database)
@@ -110,7 +116,10 @@ def get_db_connection():
 
     try:
         if auth_mode in {"entra", "device_code"}:
-            print("Using Microsoft Entra device-code authentication.")
+            if _DEVICE_CODE_CREDENTIAL is None:
+                print("Using Microsoft Entra device-code authentication.")
+            else:
+                print("Using cached Microsoft Entra credential.")
             connection = _connect_with_device_code(server, database)
         elif auth_mode == "sql":
             print("Using SQL username/password authentication.")
