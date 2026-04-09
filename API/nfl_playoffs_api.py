@@ -7,11 +7,13 @@ try:
     from get_teams_in_same_conference_division_as_specified_team import (
         get_teams_in_same_conference_division_as_specified_team,
     )
+    from validate_user import validate_user
 except ModuleNotFoundError:
     from API.get_teams_by_conference_division import get_teams_by_conference_division
     from API.get_teams_in_same_conference_division_as_specified_team import (
         get_teams_in_same_conference_division_as_specified_team,
     )
+    from API.validate_user import validate_user
 
 app = FastAPI(title="NFL Playoffs API")
 
@@ -48,3 +50,16 @@ def read_teams_in_same_conference_division(team_name: str):
         )
 
     return results
+
+
+@app.get("/validate-user")
+def read_validated_user(
+    email: str = Query(...),
+    password: str = Query(...),
+):
+    try:
+        return validate_user(email=email, password=password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc

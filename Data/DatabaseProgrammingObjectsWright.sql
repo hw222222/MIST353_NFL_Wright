@@ -44,3 +44,30 @@ BEGIN
     ORDER BY OtherTeam.TeamName;
 END;
 GO
+
+CREATE OR ALTER PROCEDURE procValidateUser
+(
+    @Email NVARCHAR(100),
+    @Password NVARCHAR(255)
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        AU.AppUserID,
+        CONCAT(AU.Firstname, ' ', AU.Lastname) AS Fullname,
+        CASE
+            WHEN NA.AppUserID IS NOT NULL THEN 'Admin'
+            WHEN NF.AppUserID IS NOT NULL THEN 'Fan'
+            ELSE 'User'
+        END AS UserRole
+    FROM AppUser AS AU
+    LEFT JOIN NFLAdmin AS NA
+        ON AU.AppUserID = NA.AppUserID
+    LEFT JOIN NFLFan AS NF
+        ON AU.AppUserID = NF.AppUserID
+    WHERE AU.Email = @Email
+      AND AU.[Password] = @Password;
+END;
+GO
