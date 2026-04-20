@@ -1,6 +1,8 @@
 fastapi
 uvicorn
+gunicorn
 pyodbc
+pymssql
 python-dotenv
 azure-identity
 streamlit

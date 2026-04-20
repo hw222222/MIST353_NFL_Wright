@@ -79,3 +79,59 @@ WHERE NOT EXISTS (
 
 SELECT COUNT(*) AS ConferenceDivisionCount FROM ConferenceDivision;
 SELECT COUNT(*) AS TeamCount FROM Team;
+
+INSERT INTO AppUser (Firstname, Lastname, Email, [Password], Phone)
+SELECT v.Firstname, v.Lastname, v.Email, v.[Password], v.Phone
+FROM (VALUES
+    ('Tom', 'Brady', 'tom.brady@example.com', 'password123', '555-0101'),
+    ('Patrick', 'Mahomes', 'patrick.mahomes@example.com', 'chiefs15', '555-0102'),
+    ('Jalen', 'Hurts', 'jalen.hurts@example.com', 'eagles1', '555-0103')
+) AS v(Firstname, Lastname, Email, [Password], Phone)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM AppUser AS au
+    WHERE au.Email = v.Email
+);
+
+INSERT INTO NFLAdmin (AppUserID)
+SELECT au.AppUserID
+FROM AppUser AS au
+WHERE au.Email = 'tom.brady@example.com'
+  AND NOT EXISTS (
+      SELECT 1
+      FROM NFLAdmin AS na
+      WHERE na.AppUserID = au.AppUserID
+  );
+
+INSERT INTO NFLFan (AppUserID)
+SELECT au.AppUserID
+FROM AppUser AS au
+WHERE au.Email IN ('patrick.mahomes@example.com', 'jalen.hurts@example.com')
+  AND NOT EXISTS (
+      SELECT 1
+      FROM NFLFan AS nf
+      WHERE nf.AppUserID = au.AppUserID
+  );
+
+INSERT INTO FanTopTeam (AppUserID, TeamID, PrimaryStatus)
+SELECT au.AppUserID, t.TeamID, v.PrimaryStatus
+FROM (VALUES
+    ('patrick.mahomes@example.com', 'Kansas City Chiefs', 1),
+    ('patrick.mahomes@example.com', 'Dallas Cowboys', 0),
+    ('jalen.hurts@example.com', 'Philadelphia Eagles', 1),
+    ('jalen.hurts@example.com', 'Baltimore Ravens', 0)
+) AS v(Email, TeamName, PrimaryStatus)
+INNER JOIN AppUser AS au
+    ON au.Email = v.Email
+INNER JOIN Team AS t
+    ON t.TeamName = v.TeamName
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM FanTopTeam AS ftt
+    WHERE ftt.AppUserID = au.AppUserID
+      AND ftt.TeamID = t.TeamID
+);
+
+SELECT COUNT(*) AS AppUserCount FROM AppUser;
+SELECT COUNT(*) AS NFLFanCount FROM NFLFan;
+SELECT COUNT(*) AS FanTopTeamCount FROM FanTopTeam;

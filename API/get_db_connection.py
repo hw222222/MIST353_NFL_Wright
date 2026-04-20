@@ -3,6 +3,11 @@ import struct
 from pathlib import Path
 
 try:
+    import pymssql
+except ModuleNotFoundError:
+    pymssql = None
+
+try:
     import pyodbc
 except ModuleNotFoundError:
     pyodbc = None
@@ -71,6 +76,22 @@ def _base_connection_string(server, database):
 
 
 def _connect_with_sql_auth(server, database):
+    if pymssql is not None:
+        timeout = int(os.getenv("DB_TIMEOUT", "30"))
+        return pymssql.connect(
+            server=server,
+            user=_require_env("DB_USER"),
+            password=_require_env("DB_PASSWORD"),
+            database=database,
+            login_timeout=timeout,
+            timeout=timeout,
+        )
+
+    if pyodbc is None:
+        raise RuntimeError(
+            "SQL authentication requires either the 'pymssql' or 'pyodbc' package."
+        )
+
     username = _require_env("DB_USER")
     password = _require_env("DB_PASSWORD")
     connection_string = (
@@ -107,15 +128,16 @@ def _connect_with_device_code(server, database):
 
 
 def get_db_connection():
-    if pyodbc is None:
-        raise RuntimeError("Database connections require the 'pyodbc' package.")
-
     server = _require_env("DB_SERVER")
     database = _require_env("DB_NAME")
     auth_mode = os.getenv("DB_AUTH_MODE", "entra").strip().lower()
 
     try:
         if auth_mode in {"entra", "device_code"}:
+            if pyodbc is None:
+                raise RuntimeError(
+                    "Microsoft Entra authentication requires the 'pyodbc' package."
+                )
             if _DEVICE_CODE_CREDENTIAL is None:
                 print("Using Microsoft Entra device-code authentication.")
             else:

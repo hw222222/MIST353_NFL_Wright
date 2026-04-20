@@ -1,15 +1,24 @@
+import os
+
 import pandas as pd
 import requests
 import streamlit as st
 
-FASTAPI_URL = "http://localhost:8000"
+DEFAULT_FASTAPI_URL = "https://mist353-api-wright.azurewebsites.net"
 REQUEST_TIMEOUT_SECONDS = 60
+
+
+def _get_fastapi_url():
+    return (
+        os.getenv("FASTAPI_URL")
+        or st.secrets.get("FASTAPI_URL", DEFAULT_FASTAPI_URL)
+    ).rstrip("/")
 
 
 def fetch_data(endpoint: str, input_params: dict | None = None):
     try:
         response = requests.get(
-            f"{FASTAPI_URL}/{endpoint}",
+            f"{_get_fastapi_url()}/{endpoint.lstrip('/')}",
             params=input_params or {},
             timeout=REQUEST_TIMEOUT_SECONDS,
         )

@@ -71,3 +71,27 @@ BEGIN
       AND AU.[Password] = @Password;
 END;
 GO
+
+CREATE OR ALTER PROCEDURE procGetTeamsForSpecifiedFan
+(
+    @AppUserID INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        T.TeamName,
+        T.TeamColors,
+        CD.Conference,
+        CD.Division,
+        FTT.PrimaryStatus
+    FROM FanTopTeam AS FTT
+    INNER JOIN Team AS T
+        ON FTT.TeamID = T.TeamID
+    INNER JOIN ConferenceDivision AS CD
+        ON T.ConferenceDivisionID = CD.ConferenceDivisionID
+    WHERE FTT.AppUserID = @AppUserID
+    ORDER BY FTT.PrimaryStatus DESC, T.TeamName;
+END;
+GO
